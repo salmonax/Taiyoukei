@@ -1,0 +1,1092 @@
+html
+  head
+    script(src='https://cdn.jsdelivr.net/npm/aframe@0.8.2/dist/aframe-master.min.js')
+    //- //- script(src='https://cdn.rawgit.com/tizzle/aframe-orbit-controls-component/v0.1.14/dist/aframe-orbit-controls-component.min.js')
+    script(src="https://cdn.jsdelivr.net/npm/aframe-effects@0.9.1/dist/aframe-effects.min.js")
+    //- script(src="https://cdn.jsdelivr.net/npm/aframe-extras@5.0.1/dist/aframe-extras.loaders.min.js")
+    script(src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.0/axios.min.js")
+    script(src="/js/pilfered.js")
+    style.
+      .halftone {
+        //- display: none;
+        position: absolute;
+        z-index: 500;
+        left: 0;
+        top: 0;
+        opacity: 0.15;
+        height: 100%;
+        width: 100%;
+        pointer-events: none;
+        background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAMAAAADCAYAAABWKLW/AAAAG0lEQVQYV2NMS1v1n4GBgWHWrDBGRhQOSBQGANfFCASW3qN7AAAAAElFTkSuQmCC) repeat;
+
+      }
+      .a-enter-vr {
+        display: none !important;
+      }
+      #gui {
+        user-select: none;
+        color: #ccc;
+        border-radius: 2px;
+        background: #9368;
+        border: 1px solid #aaa;
+        position: absolute;
+        width: 300px;
+        padding: 10px 10px;
+        padding-top: 20px;
+        height: auto;
+        left: 10px;
+        top: 10px;
+        z-index: 600;
+        box-sizing: border-box;
+
+      }
+      #gui input {
+        cursor: pointer;
+        position: relative;
+        box-sizing: border-box;
+        padding: 10px;
+        width: 95%;
+      }
+      html, body {
+        font-family: monospace;
+        background-color: black;
+      }
+      a-scene {
+        opacity: 0;
+        will-change: opacity;
+        transition: opacity 8s;
+      }
+      #timeline {
+        display: flex;
+        width: 100%;
+      }
+
+      #timeline .minus {
+        margin-left: auto !important;
+      }
+      #timeline .plus, #timeline .minus {
+        margin: 10px;
+        //- margin-left: auto;
+        text-align: center;
+        line-height: 30px;
+        height: 30px;
+        width: 30px;
+        border: 1px solid #aaa;
+        user-select: none;
+        cursor: pointer;
+      }
+      #timeline-bar {
+        border-radius: 2px;
+        color: #ccc;
+        background: #9368;
+        border: 1px solid #aaa;
+        display: flex;
+        box-sizing: border-box;
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: calc(100% - 326px);
+        height: 50px;
+        z-index: 100;
+      }
+      .easing-preview {
+        font-size: 10px;
+        line-height: 20px;
+        margin: 8px;
+        margin-top: 0px;
+        display: inline-block;
+      }
+      .easing-preview canvas {
+        border: 1px solid #111;
+        opacity: 0.7;
+      }
+      .easing-preview.selected canvas {
+        border: 1px solid #aaa;
+        opacity: 1;
+      }
+      #easing-bar {
+        border-radius: 2px;
+        color: #ccc;
+        background: #9368;
+        border: 1px solid #aaa;
+        display: flex;
+        box-sizing: border-box;
+        position: absolute;
+        right: 10px;
+        top: 70px;
+        //- width: calc(100% - 326px);
+        //- height: 50px;
+        z-index: 100;
+      }
+      #easing-bar.hidden {
+        display: none;
+      }
+      .point {
+        margin: 8px;
+        margin-left: 16px;
+        height: 30px;
+        width: 30px;
+        border: 1px solid #aaa;
+        text-align: center;
+        line-height: 30px;
+        user-select: none;
+        cursor: pointer;
+      }
+      .point.selected {
+        background: #936f;
+      }
+      #audio-bar {
+        border-radius: 2px;
+        color: #ccc;
+        background: #9368;
+        border: 1px solid #aaa;
+        display: flex;
+        box-sizing: border-box;
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        right: 10px;
+        height: 50px;
+        display: flex;
+        z-index: 100;
+      }
+      #play {
+        margin: 8px;
+        margin-left: 16px;
+        height: 30px;
+        width: 30px;
+        border: 1px solid #aaa;
+        text-align: center;
+        line-height: 30px;
+        user-select: none;
+        cursor: pointer;
+      }
+      #inner-bar {
+        border: 1px solid #aaa;
+        background: #444;
+        width: calc(100% - 46px);
+        margin: 8px;
+        height: 30px;
+        position: relative;
+      }
+      #song-position {
+        position: absolute;
+        height: 30px;
+        width: 2px;
+        background: orange;
+        top: 0px;
+        left: 0px;
+        z-index: 101;
+      }
+      .time-pin-container {
+        position: relative;
+        left: 0px;
+        top: -20px;
+        //- transition: top 100ms;
+      }
+      .time-pin-container.selected {
+        //- top: -25px;
+      }
+      .time-pin-container > * {
+        //- opacity: 0.5;
+        background-color: #0575ff;
+      }
+      .time-pin-container.selected > * {
+        background-color: magenta;
+        //- opacity: 1;
+      }
+
+      .time-pin {
+        line-height: 10px;
+        text-align: center;
+        font-size: 9px;
+        color: white;
+        position: absolute;
+        top: 0px;
+        width: 11px;
+        height: 10px;
+        z-index: 102;
+        user-select: none;
+        cursor: pointer;
+        //- transition: -webkit-transform 100ms, background-color 100ms;
+      }
+
+      .time-pin-container.selected .time-pin {
+        //- -webkit-transform: scale(1.2,1.2);
+      }
+      .time-pin-container.selected .time-pin-marker {
+        //- height: 45px;
+      }
+      .time-pin-marker {
+        //- transition: height 100ms, background-color 100ms;
+        position: absolute;
+        left: 5px;
+        top: 10px;
+        width: 10px;
+        height: 40px;
+        z-index: 101;
+        width: 2px;
+        z-index: 102;
+      }
+  body
+    audio#spring(src="/assets/spring-nosci.mp3")
+    .halftone
+    #audio-bar
+      #play |>
+      #inner-bar
+        //- .time-pin-container
+        //-   .time-pin 1
+        //-   .time-pin-marker
+        //- .time-pin-container(style="left: 15px")
+        //-   .time-pin 2
+        //-   .time-pin-marker
+        #song-position
+    #gui
+      #sliders
+        div bloom strength
+        input#bloom(type="range" min="0" max="5" step="0.0001" value="1")
+        div bloom radius
+        input#radius(type="range" min="0" max="2" step="0.0001" value="0.3")
+        div point size
+        input#size(type="range" min="0" max="2" step="0.0001" value="0.3")
+        div color mul
+        input#mul(type="range" min="0" max="3" step="0.0001" value="1.4")
+        div color pow
+        input#pow(type="range" min="0.1" max="20" step="0.0001" value="10")
+        div camera x
+        input#camera-x(type="range" min="-1000" max="1000" step="0.0001" value="0.3")
+        div camera y
+        input#camera-y(type="range" min="-1000" max="1000" step="0.0001" value="0.3")
+        div camera z
+        input#camera-z(type="range" min="-1000" max="2000" step="0.0001" value="0.3")
+        div camera rx
+        input#camera-rx(type="range" min="-10" max="10" step="0.0001" value="0.3")
+        div camera ry
+        input#camera-ry(type="range" min="-10" max="10" step="0.0001" value="0.3")
+        div camera rz
+        input#camera-rz(type="range" min="-10" max="10" step="0.0001" value="0.3")
+      #timeline
+        .minus -
+        .plus +
+
+    #timeline-bar
+    #easing-bar.hidden
+
+    //- Uncomment this one for stars
+    //- a-scene(
+    //-   transparent="true"
+    //-   effects="colors, bloom"
+    //-   bloom="radius: 0.3; strength: 1; threshold: 0"
+    //-   colors="mode: mp; pow: 10 10 10; mul: 1.4 1.4 1.4; orig: 0.2 0.2 0.2"
+
+    //- )
+
+    //- Good for earth
+    a-scene(
+      transparent="true"
+      effects="colors, bloom"
+      bloom="radius: 1; strength: 0.7; threshold: 0"
+      colors="mode: mp; pow: 2.45 2.45 2.45; mul: 0.75 0.75 0.75; orig: 0.2 0.2 0.2"
+    )
+      a-assets
+        a-asset-item#galaxy(src="/assets/scene.gltf")
+        a-asset-item#planet(src="/assets/planet_earth/scene.gltf")
+        img#sky(src="/assets/stars-2.jpg")
+
+      a-entity#camera(
+        camera='fov: 45; zoom: 1;'
+        position="100 100 200"
+        mouse-cursor=''
+      )
+      a-entity#ginstance(
+        gltf-model="#galaxy"
+        position="-200 -200 -100"
+      )
+
+      //- a-entity#pinstance(
+      //-   gltf-model="#planet"
+      //-   position="142 -80.5 -263"
+      //-   scale="1 1 1"
+      //- )
+
+      a-entity#target(
+        position="-88 89.5 -213"
+        scale="1 1 1"
+      )
+      a-box(position="-1 0.5 -3" rotation="0 0 0" color="#4CC3D9" scale="4 4 4")
+
+      a-sky(src="#sky" phi-start="45")
+
+      script.
+        const loadTimer = {
+          startTime: Date.now(),
+          done: () => console.error('TTL:', (Date.now() - loadTimer.startTime)/1000, 'seconds! '),
+        };
+        document.addEventListener('transitionstart', ({ target, propertyName }) => {
+          if (target === $('a-scene') && propertyName === 'opacity') {
+            loadTimer.done();
+          }
+        });
+        //- b.forEach((n, i, a) => b[i] = 255/397*(n+83))
+        // Putting util stuff for WIP things at the top
+
+        function loadAndApplyStarData(filePath = '/assets/starPositions.bin') {
+            return fetch(filePath)
+              .then(resp => resp.arrayBuffer())
+              .then(buffer => {
+                applyCompressedStars(new Uint8Array(buffer));
+              });
+        }
+
+        function buildEarth(radius = 20, wSeg = 20, hSeg = 20) {
+          const surface = _buildEarthLayer();
+          const clouds = _buildEarthLayer(
+            'assets/planet_earth/clouds_half.png',
+            { transparent: true },
+            {
+              wrapS: THREE.MirroredRepeatWrapping,
+              repeat: new THREE.Vector2(2,1),
+            },
+            radius*1.04,
+          );
+          const atmosphere = _buildEarthLayer(
+            null,
+            {
+              transparent: true,
+              opacity: 0.12,
+              color: new THREE.Color(0.085573703,0.6946783452,0.8928293249),
+              side: THREE.DoubleSide,
+              depthFunc: THREE.AlwaysDepth,
+
+            },
+            null,
+            radius*1.04*1.02,
+          );
+
+
+          return { surface, clouds, atmosphere };
+        }
+
+        function _buildEarthLayer(tex = 'assets/planet_earth/base.jpeg', matOpts = {}, texOpts = {}, radius = 20, wSeg = 20, hSeg = 20) {
+          // Clouds 3.6% above surface
+          // Atmosphere 1.8% above clouds
+          const earthPos =  new THREE.Vector3(142, -80.5, -263);
+          const texture = !tex ? null : (new THREE.TextureLoader()).load(tex);
+          if (texture) {
+            console.log(tex, texOpts);
+            Object.assign(texture, {
+              flipY: false,
+              encoding: THREE.sRGBEncoding,
+              ...texOpts,
+
+            });
+          }
+          const geometry = new THREE.SphereBufferGeometry(radius, wSeg, hSeg);
+          const material = new THREE.MeshStandardMaterial({
+            //- color: '#fff',
+            map: texture,
+            metalness: 0,
+            roughness: 1,
+            ...matOpts,
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(...earthPos.toArray());
+          //- mesh.position.x += 50
+          mesh.rotation.y = -3;
+          //- mesh.scale.set(50,50,50);
+          scene.add(mesh);
+
+          return mesh;
+        }
+
+
+        function compressStarPositions() {
+          const b = starPoints.geometry.attributes.position.array.slice();
+          // Do three things:
+          // 1. Add 83, so that we can use unsigned ints
+          // 2. Compress the range to fit within 255.
+          // 3. Round it.
+          // Note: this is purely based on knowing the range of the data.
+          // On uncompress, make sure to add Math.random*2 -1 so it doesn't look terrible
+          b.forEach((n, i, a) => b[i] = Math.round(255/397*(n+83)));
+          return b;
+        }
+        function applyCompressedStars(intArray) {
+          const c = Float32Array.from(intArray);// compressStarPositions().slice();
+          //- window.intArray = c;
+          c.forEach((n, i) => c[i] = n + (Math.random()*2-1));
+          starPoints.geometry.attributes.position.array = c;
+          starPoints.geometry.attributes.position.needsUpdate = true;
+
+          //- // Adjust the position and scale to compensate for adjustments
+          const scaleFactor = 397/255;
+          starPoints.scale.set(scaleFactor, scaleFactor, scaleFactor);
+          starPoints.position.z -= 83;
+          starPoints.position.x -= 83;
+          starPoints.position.y -= 83;
+          return c;
+        }
+        function applyColors() {} // Once I'm loading the compressed position data, make my own colors
+
+        const $ = document.querySelector.bind(document);
+        const $$ = document.querySelectorAll.bind(document);
+        const { components } = $('a-scene');
+
+        // Calling this a "store" rather than a state due to the addition
+        // of small utility functions. Sadly, this means it isn't serializable
+        const $$store = _s = {
+          selectedPoint: null,
+          timelinePoints: [],
+          selectedEasingIndex: 0,
+          isPlaying: false,
+          mouse: {
+            button: null,
+            clickEvent: {},
+            moveEvent: {},
+            position: new THREE.Vector2(),
+          },
+          intersects: {
+            lastMove: [],
+            lastClick: [],
+          },
+          tweenChain: {
+            current: null,
+            get isRunning() {
+              return !!this.current;
+            },
+            cancel() {
+              console.log('CANCELING TWEEN CHAIN', this);
+              this.current = null;
+              console.log(this.current);
+            }
+          },
+          dragger: {
+            trigger: null,
+            target: null,
+            reset() {
+              this.trigger = this.target = null;
+            },
+          },
+          get easings() {
+            if (!this.__easings) {
+              this.__easings = [];
+              Object.keys(TWEEN.Easing).slice(0,2).forEach((mode, i) => {
+                Object.keys(TWEEN.Easing[mode]).forEach(submode => {
+                  this.__easings.push(TWEEN.Easing[mode][submode]);
+                });
+              });
+            }
+            return this.__easings;
+          }
+        };
+        const $songBar = $('#song-position');
+        const $innerBar = $('#inner-bar');
+        const $playButton = $('#play');
+        const $box = $('a-box');
+        const $scene = $('a-scene');
+        const $camera = $('#camera');
+        //- const $earth = $('#pinstance');
+        const $galaxy = $('#ginstance');
+        const $timelineBar = $('#timeline-bar');
+        const $song = $('#spring');
+        const $sky = $('a-sky');
+        const $addButton = $('.plus');
+        const $subtractButton = $('.minus');
+        const $easingBar = $('#easing-bar');
+
+        const onMouseMove = e => {
+          $$store.mouse.position.x  = (e.clientX / window.innerWidth) * 2 - 1;
+          $$store.mouse.position.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        }
+        window.addEventListener('mousemove', onMouseMove, false);
+
+        $scene.addEventListener('loaded', () => {
+          const camera = $camera.object3D;
+          $sky.object3D.children[0].material.transparent = true;
+          $sky.object3D.children[0].material.opacity = 1;
+
+          const pivot = window.pivot = new THREE.Group(); // bleh, fix
+
+          pivot.position.set(-88, -89.5, -213);
+          scene.add(pivot);
+          pivot.add(camera);
+
+          // Earth view
+          //- camera.position.set(223.36, 7.32, 39.44);
+
+          // Jupiter view
+          //- camera.position.set(100, 100, 3875.48);
+          //- pivot.rotation.set(1.47, -0.50, 0.14);
+
+          //- // Inserted Earth view
+          camera.position.set(-3.861, -3.585, 54.188);
+          pivot.position.set(435.478, 195.814, 0);
+          pivot.rotation.set(1.341, -0.1377, -0.05837);
+
+          $box.object3D.position.set(-88, -89.5, -213);
+          $box.object3D.visible = false;
+          //- $box.object3D.children[0].material.depthTest = false; // always show this object
+          //- window.testEarth = buildEarth();
+          buildSolarSystem();
+          window.requestAnimationFrame(customRender);
+        });
+
+        function handlePivotChange(newPos) {
+
+        }
+
+        // Some notes on "action":
+        //  1. They're current written to either be used directly as event handlers or triggered manually.
+        //    Anything that can potentially bound to a keystroke is defined here.
+        //  2. I've faux-injected their deps, in order to telegraph what they are, by listing each as local
+        //     vars with default params; if I refactor it into an action builder, each should get a standard set
+        //     of params
+        //  3. The first value is always either "e" or a destructured target; if "e" is irrelevant, an
+        //     underscore is used. If an action is called programmatically, just inject the target.
+        const action = {
+          camera: {
+            setPivot: ({ target }, _$$store = $$store, _pivot = pivot, _$camera = $camera, _$box = $box) => {
+              if (target !== $('.a-canvas')) return;
+              console.log(target);
+              const { intersects } = _$$store;
+
+              console.log(intersects);
+              intersects.lastClick = intersects.lastMove; // bleh, move into a store method
+              if (!intersects.lastClick.length) return;
+              const nearestToRay = intersects.lastClick.slice()
+                .sort((a, b) => a.distanceToRay - b.distanceToRay)[0];
+              // If there's no face, but it's hitting something, assume we're dealing with bufferGeometry
+              const camera = _$camera.object3D;
+              const originalCamPos = camera.getWorldPosition(); // use this to restore after moving pivot
+              // SO... this needs to look like this:
+              // const newPos = nearestToRay.face ?
+              //  nearestToRay.object.getWorldPosition().toArray() :
+              //  getBufferIntersectCoords(_pivot, nearestToRay);
+              // handlePivotChange(camera, pivot);
+
+              if (!nearestToRay.face) {
+                moveToBufferIntersect(_$box.object3D, nearestToRay); // TODO: change this function
+                // Fix original camera position
+                moveToBufferIntersect(_pivot, nearestToRay);
+              // Otherwise, handle things internally
+              } else {
+                const newPos = nearestToRay.object.getWorldPosition().toArray();
+                _$box.object3D.position.set(...newPos);
+                _pivot.position.set(...newPos);
+              }
+              _pivot.updateMatrixWorld();
+              _pivot.worldToLocal(originalCamPos);
+              camera.position.set(...originalCamPos.toArray());
+            },
+          },
+          song: {
+            toggle(e, _$$store = $$store, _$playButton = $playButton, _$song = $song, _TWEEN = TWEEN) {
+              const t = _$$store.isPlaying ? ['pause','remove', '|>'] : ['play', 'add', '||'];
+              _$song[t[0]]();
+              _$playButton.classList[t[1]]('playing');
+              _$playButton.innerText = t[2];
+              _$$store.isPlaying = !_$$store.isPlaying;
+              if (_$$store.tweenChain.isRunning) {
+                _$$store.tweenChain.cancel();
+                stopAllTweens();
+              }
+            }
+          },
+          timeline: {
+            tweenAll(e, _$$store = $$store, _$song = $song, _TWEEN = TWEEN, _dt = doTween) {
+              // TODO: this shouldn't be doubled up with action.song.toggle
+              // Not sure whether I want the $$store utility funcs to depend on
+              // _TWEEN, or I would put that into tweenChain.cancel()
+              if (_$$store.tweenChain.isRunning) {
+                _$$store.tweenChain.cancel();
+                stopAllTweens(); // naively kill all existing tweens
+
+              }
+              if (_$$store.timelinePoints.length <= 1) return; // 0
+              // NOTE:
+              // 1. I might want to make using the song offsets optional
+              // 2. There needs to be a strong, comprehensive way to cancel all tweens
+              const closuredChainID = new Date();
+              _$$store.timelinePoints
+                .map((point, i, points) => () => new Promise((resolve, reject) => {
+                  // Make sure to opt out of the remaining tweens in the chain
+                  // If it's ever canceled midway through.
+                  try {
+                    if (_$$store.tweenChain.current !== closuredChainID) {
+                      console.log('Tween skipped after queueing:', i, 'of ID ', closuredChainID);
+                      resolve(i);
+                      return;
+                    }
+                    const isFirst = !i;
+                    const isLast = (i === points.length - 1);
+                    const duration = isFirst ? 0 :
+                      (points[i].pinOffsetSeconds - points[i-1].pinOffsetSeconds)*1000;
+                    // Four cases to handle:
+                    // 0. Only tween: Skipped; if there's only 1 or 0 in timelinePoints, there is nothing to tween.
+                    // 1. First of several: duration is 0, so it cuts to the first offset and starts playing the song
+                    // 2. Middle: subtract pinOffsetSeconds[i-1] from the current, use it.
+                    // 3. Last: Stop the song and do nothing. I think the behavior is currently correct.
+                    console.log('Tween started:', i);
+                    _dt(point, isFirst ? 0 : duration,
+                      () => {
+                        // This runs when the tween is over
+                        console.log('Tween completed:', i);
+                        if (isFirst) { // 1
+                          $song.currentTime = 0;
+                          $song.play();
+                        } else if (isLast) { // 2
+                          $song.pause();
+                        }
+                        resolve(i);
+                      },
+                      () => {
+                        console.log('Tween canceled while running:', i);
+                        resolve(i);
+                      });
+                  } catch(err) {
+                      reject(err);
+                  }
+                }))
+                .reduce((pendingPromise, promiseFn, j) => {
+                  return pendingPromise.then(i => promiseFn());
+                },
+                  Promise.resolve(),
+                );
+              _$$store.tweenChain.current = closuredChainID;
+            },
+            add(e, _timelinePoints = $$store.timelinePoints, _pivot = pivot, _camera = $camera.object3D, _hs = handleTimelineSelection, _duration = 1000) {
+              const _$point = div('point');
+              const index = _timelinePoints.length + 1;
+              const pinOffsetSeconds = (_timelinePoints.length)*_duration/1000;
+              const $songPin = createTimePin(pinOffsetSeconds, index);
+              _$point.innerText = index;
+              const pointData = _$point.data = $songPin.data = {
+                $button: _$point,
+                $pin: $songPin,
+                tween: {
+                  position: { ..._camera.position },
+                  rotation: { x: _pivot.rotation.x, y: _pivot.rotation.y, z: _pivot.rotation.z },
+                },
+                pinOffsetSeconds,
+                pivotPosition: { x: _pivot.position.x, y: _pivot.position.y, z: _pivot.position.z },
+              };
+              _timelinePoints.push(pointData);
+              $timelineBar.appendChild(_$point);
+              // WARNING: the delay needs to be consolidated! It's also defined in doTween
+              _hs(_$point);
+              $('#easing-bar').classList.remove('hidden');
+            },
+            subtract(e, _timelinePoints = $$store.timelinePoints, _pivot = pivot, _camera = $camera.object3D) {
+              if (_timelinePoints.length) {
+                // Ugh, just popping for the time being; not a fan of this
+                const popped = _timelinePoints.pop();
+                if (_timelinePoints.length && popped.$button.classList.contains('point')) {
+                  action.timeline.select({ target: _timelinePoints[_timelinePoints.length-1].$button });
+                }
+                const points = $$('.point');
+                points[points.length-1].remove();
+                const pins = $$('.time-pin-container');
+                pins[pins.length-1].remove();
+              }
+              if (!_timelinePoints.length) {
+                $('#easing-bar').classList.add('hidden');
+              }
+            },
+            select({ target }, _dt = doTween, _hs = handleTimelineSelection) {
+              if (target.classList.contains('point')) { // Blech
+                _dt(target.data); // do tween related to target
+                _hs(target); // select the interface element
+              }
+            },
+            _nextOrPrev(e, offset, _tp = $$store.timelinePoints) {
+              const selectedButton = _tp.findIndex(n => n.$button.classList.contains('selected'));
+              if (selectedButton === -1) return;
+              action.timeline.select({
+                // Um, what?
+                target: _tp[selectedButton+offset] ? _tp[selectedButton+offset].$button : _tp[offset > 0 ? 0 : _tp.length -1].$button,
+              });
+            },
+            selectNext(e) { action.timeline._nextOrPrev(e,1); },
+            selectLast(e) { action.timeline._nextOrPrev(e,-1) },
+          },
+          easing: {
+            select({ target }, _dt = doTween) {
+              //- if (!(target instanceof HTMLCanvasElement) return;
+
+            }
+          },
+        };
+
+        const bindings = {
+          NumpadAdd: action.timeline.add,
+          NumpadSubtract: action.timeline.subtract,
+          Numpad4: action.timeline.selectLast,
+          Numpad5: action.timeline.tweenAll,
+          Numpad6: action.timeline.selectNext,
+          Space: action.song.toggle,
+        };
+
+        document.addEventListener('click', action.camera.setPivot);
+        $addButton.addEventListener('click', action.timeline.add);
+        $subtractButton.addEventListener('click', action.timeline.subtract);
+        $timelineBar.addEventListener('click', action.timeline.select);
+        $playButton.addEventListener('click', action.song.toggle);
+        $easingBar.addEventListener('click', action.easing.select);
+
+        document.addEventListener('keypress', e => {
+          console.log(e.code);
+          bindings[e.code] && bindings[e.code](e);
+        });
+
+        function handleTimelineSelection(_$point, _$$store = $$store) {
+          if (_$$store.selectedPoint) {
+            _$$store.selectedPoint.classList.remove('selected');
+            _$$store.selectedPoint.data.$pin.classList.remove('selected'); // oh brother...
+          }
+          _$point.classList.add('selected');
+          _$point.data.$pin.classList.add('selected'); // Bleh... need to redesign this
+          _$$store.selectedPoint = _$point;
+        }
+
+        function doTween(timelinePoint, duration = 1000, onCompleteFn = () => {}, onCancelFn = () => {}) {
+          const { Tween } = AFRAME.TWEEN;
+          // So... Yeah, this needs a clean pattern to figure out *what* to tween automatically
+          const { tween, pivotPosition } = timelinePoint;
+
+          console.log(timelinePoint);
+          (new Tween($camera.object3D.position))
+            .to(tween.position, duration)
+            //- .easing(AFRAME.TWEEN.Easing.Quadratic.InOut)
+            //- .delay(startOffsetSeconds*1000)
+            .start()
+          $camera.object3D.updateMatrixWorld();
+          $camera.object3D.updateMatrix();
+          (new Tween(pivot.rotation))
+            .to(tween.rotation, duration)
+            //- .delay(startOffsetSeconds*1000)
+            .onComplete(onCompleteFn)
+            .onStop(onCancelFn)
+            //- .easing(AFRAME.TWEEN.Easing.Quadratic.InOut)
+            .start();
+          ['x','y','z'].forEach(axis => {
+            const _$position = $(`#camera-${axis}`);
+            const _$rotation = $(`#camera-r${axis}`);
+            _$position.value = tween.position[axis];
+            _$rotation.value = tween.rotation[axis];
+
+          });
+        }
+
+        $('#bloom').oninput = function (e) {
+          components.bloom.data.strength = this.value;
+        }
+        $('#radius').oninput = function (e) {
+          components.bloom.data.radius = this.value;
+        }
+        $('#size').oninput = function (e) {
+          starPoints.material.size = this.value;
+        }
+        $('#mul').oninput = function(e) {
+          setColors('mul',this.value);
+        }
+        $('#pow').oninput = function(e) {
+          setColors('pow',this.value);
+        }
+
+        document.addEventListener('mousedown', e => {
+          $$store.mouse.button = e.button;
+          $$store.mouse.clickEvent = e; // Extract as needed
+        })
+        document.addEventListener('mouseup', e => {
+          $$store.mouse.button = null;
+          $$store.mouse.clickEvent = {};
+        });
+
+        document.addEventListener('mousemove', e => {
+          const { button, clickEvent, moveEvent } = $$store.mouse;
+          //- console.log(moveEvent);
+          const deltaX = e.clientX - moveEvent.clientX;
+          const deltaY = e.clientY - moveEvent.clientY;
+          if (button === 1) {
+            if (e.shiftKey) {
+              //- console.log('panning', deltaX, deltaY);
+
+              //- console.log($camera.object3D.position.z, deltaX, deltaY);
+
+              let factor = 1;
+              if (Math.abs($camera.object3D.position.z) < 15) {
+                factor = 100;
+              }
+
+              $camera.object3D.position.x -= deltaX/10/factor;
+              $camera.object3D.position.y += deltaY/10/factor;
+
+
+              // EMERGENCY: get rid of this!!
+              if ($$store.selectedPoint) {
+                const [x, y, z] = $camera.object3D.position.toArray();
+                $$store.selectedPoint.data.tween.position = { x, y, z };
+              }
+
+
+            } else {
+              pivot.rotateOnAxis(new THREE.Vector3(1, 0, 0), -deltaY/100);
+              pivot.rotateOnAxis(new THREE.Vector3(0, 1, 0), -deltaX/100);
+              if ($$store.selectedPoint) {
+                const [x, y, z] = pivot.rotation.toArray();
+                $$store.selectedPoint.data.tween.rotation = { x, y, z };
+              }
+
+            }
+          }
+          $$store.mouse.moveEvent = e;
+          if (!$$store.dragger.target) return;
+          // Bleh, I hate how dirty these dimensions are, but whatever
+          // Also, I just seem to be assuming that I have the element I want, even though this is a document-wide event
+          const leftClamp = -5;
+          const rightClamp = $innerBar.offsetWidth - 8;
+
+          const pixelPlacement = Math.min(Math.max(leftClamp, e.clientX - $innerBar.offsetLeft - 15), rightClamp); // bleh
+          const secondsPlacement = pixelsToPinSeconds(pixelPlacement);
+          const derivedPixelsPlacement = secondsToPinPixels(secondsPlacement); // avoid a discrepency; it will make it snap, sadly
+          $$store.dragger.target.data.pinOffsetSeconds = secondsPlacement;
+          $$store.dragger.target.style.left = derivedPixelsPlacement;
+          //- $song.currentTime = songPlacement;
+          //- console.log(pixelPlacement, secondsToPinPixels(secondsPlacement), secondsPlacement);
+        });
+
+        document.addEventListener('mousewheel', ({ deltaY }) => {
+          // Sigh, this stuff needs to be patterned correctly.
+          // The camera position should be a tweenable, and these should be reactions to it, or some such
+          if (Math.abs($camera.object3D.position.z) < 15) {
+            deltaY = deltaY / 100;
+          }
+          $camera.object3D.position.z += deltaY;
+
+          //- console.log(deltaY, $camera.object3D.position.z);
+          $('#camera-z').value = $camera.object3D.position.z;
+          // Bleh, doubled up from the oninput code, and it shouldn't be
+          if ($$store.selectedPoint) {
+            $$store.selectedPoint.data.tween.position.z = $camera.object3D.position.z;
+          }
+        });
+
+
+
+        // Not sure where to put these yet, and they're not DRY, but leaving here for now.
+        function secondsToPinPixels(seconds, leftClamp = -5, rightClamp = $innerBar.offsetWidth - 8) {
+          return seconds/$song.duration*(rightClamp-leftClamp)+leftClamp;
+        }
+        function pixelsToPinSeconds(pixels, leftClamp = -5, rightClamp = $innerBar.offsetWidth - 8) {
+          return $song.duration*Math.round(100*Math.abs(pixels/(rightClamp - leftClamp)))/100;
+        }
+
+        document.addEventListener('mouseup', e => $$store.dragger.reset());
+
+        $innerBar.addEventListener('mousedown', e => {
+          if (e.target.classList.contains('time-pin')) {
+            Object.assign($$store.dragger, {
+              target: e.target.parentNode,
+              trigger: e,
+            });
+            return;
+          }
+          const toTime = $song.duration/e.target.offsetWidth;
+          const songPosition = Math.max(e.offsetX, 0)*toTime;
+          $song.currentTime = songPosition;
+        });
+
+        setInterval(() => {
+          const toPixels = $innerBar.offsetWidth/$song.duration;
+          const songPosition = $song.currentTime*toPixels;
+          $songBar.style.left = songPosition;
+        }, 200);
+
+        ['x','y','z'].forEach(a => {
+          $(`#camera-${a}`).oninput = function(e) {
+            $('#camera').object3D.position[a] = +this.value;
+            if ($$store.selectedPoint) {
+              $$store.selectedPoint.data.tween.position[a] = +this.value;
+            }
+          }
+          $(`#camera-r${a}`).oninput = function(e) {
+            pivot.rotation[a] = +this.value;
+            $box.object3D.rotation[a] = +this.value;
+            if ($$store.selectedPoint) {
+              $$store.selectedPoint.data.tween.rotation[a] = +this.value;
+            }
+          }
+        });
+
+        const scene = document.querySelector('a-scene').object3D;
+        let flatEarth; // waka waka
+        //- $earth.addEventListener('model-loaded', ({ target: { object3D: o } }) => {
+        //-   // TODO: just get rid of this model.
+        //-   flatEarth = flattenTree(o);
+        //-   flatEarth[9].visible = false;
+        //-   flatEarth[11].children[0].material.side = THREE.FrontSide;
+        //-   flatEarth[12].material.roughness = 0.9; // lose the ugly specular sheen
+        //-   flatEarth[13].children[0].material.side = THREE.FrontSide;
+        //-   flatEarth[16].material.depthFunc = 1; // fix weirdness
+        //-   flatEarth[16].scale.set(0.97,0.97, 0.97); // scale atmosphere down
+        //-   $scene.style.opacity = 1;
+        //-   window.testEarth = buildEarth();
+        //-   window.mats = []; $earth.object3D.traverse(o => o.material && mats.push(o))
+        //-   window.requestAnimationFrame(customRender);
+
+        //- });
+        let starsPoints;
+        $galaxy.addEventListener('model-loaded', ({target}) => {
+          target.object3D.traverse(o => {
+            if (o.type !== 'Points') return; // Brittle.
+            starPoints = o;
+          });
+          Object.assign(starPoints.material, {
+            //- size: 3,
+            //- size: 0.3,
+            map: (new THREE.TextureLoader()).load('assets/disc.png'),
+            transparent: false,
+            //- transparent: true,
+            alphaTest: 0.5,
+            opacity: 1.3,
+            premultipliedAlpha: true,
+          });
+          $scene.style.opacity = 1;
+        });
+
+
+        function flattenTree(top) {
+          let output = [];
+          top.traverse(n => output.push(n));
+          return output;
+        }
+
+        const _frameEvent = new CustomEvent('frame'); // used by solar-system thing
+
+        function customRender() {
+          document.dispatchEvent(_frameEvent);
+          //- console.log('asdasd');
+          //- flatEarth[13].rotation.y += 0.0005; // Shift the earth atmosphere overc continually
+          //- testEarth.clouds.rotation.y += 0.0006;
+
+          const raycaster = new THREE.Raycaster();
+          raycaster.setFromCamera($$store.mouse.position, $camera.object3D.children[0]);
+          let intersects = raycaster.intersectObjects(scene.children, true);
+          intersects = intersects.filter(n => n.object.el !== $sky);
+          if (intersects.length) {
+            $$store.intersects.lastMove = intersects;
+          }
+          window.requestAnimationFrame(customRender);
+        }
+
+        //- function getBufferIntersectCoords(intersect) {
+        //-   const { object, index } = intersect;
+        //-   const bufferIndex = index*3;
+        //-   const { geometry } = object;
+        //-   // WARNING: getAttribute only works on buffer objects; fails on Lines!
+        //-   const localCoords = [0,1,2].map(n =>
+        //-     geometry.getAttribute('position' ).array[bufferIndex + n]);
+        //-   return globalCoords = object.localToWorld(new THREE.Vector3(...localCoords)).toArray();
+        //- }
+        /// TODO: Change to getBufferIntersectCoords
+        function moveToBufferIntersect(target, intersect) {
+          const { object, index } = intersect;
+          const bufferIndex = index*3;
+          const { geometry } = object;
+          const localCoords = [0,1,2].map(n =>
+            geometry.getAttribute('position' ).array[bufferIndex + n]);
+          const globalCoords = object.localToWorld(new THREE.Vector3(...localCoords)).toArray();
+          target.position.set(...globalCoords);
+        }
+
+        function setColors(key, val) {
+          components.colors.data[key] = { x: val, y: val, z: val };
+          // Bug causes console.error; avoid
+          try {
+            components.colors.update();
+          } catch(err) {}
+        }
+
+        function createTimePin(timeSeconds = 20, index  = 1, parent = $innerBar) {
+          const container = div('time-pin-container');
+          const body = [div('time-pin'),div('time-pin-marker')];
+          body.forEach(n => container.appendChild(n));
+          container.style.left = secondsToPinPixels(timeSeconds); // obviously, convert this; remember that the dimensions are kludged
+          body[0].innerText = index;
+          parent.appendChild(container);
+          return container;
+        }
+
+        function div(className) {
+          const div = document.createElement('div');
+          div.classList.add(className);
+          return div;
+        }
+
+        // Not 100% sure about this; TWEEN.removeAll() will stop
+        // the tween, but it won't trigger onStop, which I need
+        // in order to control my tween chain. So, going through
+        // and stopping them manually.
+        function stopAllTweens() {
+          const { _tweens } = window.TWEEN;
+          for (key in _tweens) {
+            _tweens[key].stop();
+          }
+          TWEEN.removeAll();
+        }
+
+        function createGraph( t, f, c, $div = div) {
+          var _div = $div('easing-preview');
+          var canvas = document.createElement( 'canvas' );
+
+          canvas.width = 90;
+          canvas.height = 50;
+
+          var context = canvas.getContext( '2d' );
+          context.fillStyle = "#444";
+          context.fillRect( 0, 0, 90, 50 );
+          context.lineWidth = 1;
+          context.strokeStyle = "orange";
+
+          var steps = 8;
+
+          let prevPos;
+          const from = prevPos = { x: 3, y: 40 };
+          const to = { x: 87, y: 10 };
+          const delta = { x: to.x - from.x, y: to.y - from.y };
+          //- console.log(deltaPos);
+          for (let i = 0; i <= steps; i++) {
+            const ease = { x: i/steps, y: f(i/steps) };
+            const newPos = { x: from.x + ease.x*delta.x,  y: from.y + ease.y*delta.y };
+            context.beginPath();
+            context.moveTo( prevPos.x, prevPos.y );
+            context.lineTo( newPos.x, newPos.y );
+            context.closePath();
+            context.stroke();
+
+            prevPos = newPos;
+          }
+
+          _div.appendChild( document.createTextNode( t ) );
+          _div.appendChild( document.createElement( 'br' ) );
+          _div.appendChild( canvas );
+
+          return _div;
+        }
+
+
+        function drawAllEasings($target = $('#easing-bar'), _TWEEN = TWEEN) {
+          //- $target.appendChild(createGraph('Linear.None', _TWEEN.Easing.Quadratic.Out));
+          const allModes = [];
+          Object.keys(_TWEEN.Easing).slice(0,2).forEach((mode, i) => {
+            Object.keys(_TWEEN.Easing[mode]).forEach(submode => {
+              const newGraph = createGraph(`${mode}.${submode}`, _TWEEN.Easing[mode][submode]);
+              if (!i) {
+                newGraph.classList.add('selected');
+              }
+              $target.appendChild(newGraph);
+            });
+          });
+        }
+
+        drawAllEasings();
